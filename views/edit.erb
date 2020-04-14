@@ -1,6 +1,6 @@
 <form method="post" action="/memo/edit/<%= @memo['id'] %>">
 	<input type="text" name="title" class="memo-title border" value="<%= @memo['title'] %>">
-	<textarea name="body" class="memo-body border" placeholder="contents"><%= @memo['body'] %></textarea>
+	<textarea name="body" class="memo-body border"><%= @memo['body'] %></textarea>
     <input type="hidden" name="_method" value="PATCH">
     <input type= "submit" value="変更" class="button add">
 </form>

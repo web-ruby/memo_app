@@ -1,6 +1,6 @@
 <ul class="memo-titles">
-  <% @memos.each_with_index do |memo, index| %>
-    <li data-id= "<%= memo['id'] %>">
+  <% @memos.each do |memo| %>
+    <li>
         <a href="/memo/<%= memo['id'] %>">
           <%= memo['title'] %>
         </a>
