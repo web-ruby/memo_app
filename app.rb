@@ -19,6 +19,42 @@ def memo(memo_id)
   w_memo
 end
 
+def new_memo(new_id)
+  new_memo = {
+    'id' => new_id.to_s,
+    'title' => params[:title],
+    'body' => params[:body]
+  }
+  $json['memos'].push(new_memo)
+end
+
+def edit_memo
+  {
+    'id' => params[:id].to_s,
+    'title' => params[:title],
+    'body' => params[:body]
+  }
+end
+
+def delete_memo
+  num = 0
+  $memos.each do |memo|
+    $json['memos'].delete_at(num) if memo['id'].to_s == params[:id].to_s
+    num += 1
+  end
+end
+
+def rewrite_memo(edit_memo)
+  num = 0
+  $memos.each do |memo|
+    if memo['id'].to_s == params[:id].to_s
+      $json['memos'][num]['title'] = edit_memo['title']
+      $json['memos'][num]['body'] = edit_memo['body']
+    end
+    num += 1
+  end
+end
+
 def rewrite_json
   File.open('views/memos.json', 'w') do |file|
     JSON.dump($json, file)
@@ -41,30 +77,15 @@ get '/memo/edit/:id' do
 end
 
 patch '/memo/edit/:id' do
-  edit_memo = {
-    'id' => params[:id].to_s,
-    'title' => params[:title],
-    'body' => params[:body]
-  }
-  num = 0
-  $memos.each do |memo|
-    if memo['id'].to_s == params[:id].to_s
-      $json['memos'][num]['title'] = edit_memo['title']
-      $json['memos'][num]['body'] = edit_memo['body']
-    end
-    num += 1
-  end
+  edit_memo
+  rewrite_memo(edit_memo)
   rewrite_json
   redirect '/'
   erb :index
 end
 
 delete '/memo/delete/:id' do
-  num = 0
-  $memos.each do |memo|
-    $json['memos'].delete_at(num) if memo['id'].to_s == params[:id].to_s
-    num += 1
-  end
+  delete_memo
   rewrite_json
   redirect '/'
   erb :index
@@ -80,12 +101,7 @@ post '/new' do
   $memos.each do |memo|
     new_id = memo['id'].to_i + 1 if new_id <= memo['id'].to_i
   end
-  new_memo = {
-    'id' => new_id.to_s,
-    'title' => params[:title],
-    'body' => params[:body]
-  }
-  $json['memos'].push(new_memo)
+  new_memo(new_id)
   rewrite_json
   redirect '/'
   erb :index
