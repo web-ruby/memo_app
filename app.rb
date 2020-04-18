@@ -5,8 +5,8 @@ require 'sinatra/reloader'
 require 'json'
 require 'byebug'
 
-$json_file_path = 'views/memos.json'
-$json = open($json_file_path) do |io|
+json_file_path = 'views/memos.json'
+$json = open(json_file_path) do |io|
   JSON.load(io)
 end
 $memos = $json['memos']
