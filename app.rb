@@ -5,27 +5,38 @@ require 'sinatra/reloader'
 require 'json'
 require 'byebug'
 
-json_file_path = 'views/memos.json'
-$json = open(json_file_path) do |io|
-  JSON.load(io)
+def json_file
+  open('views/memos.json') do |io|
+    JSON.load(io)
+  end
 end
-$memos = $json['memos']
 
 def memo(memo_id)
   w_memo = ''
-  $memos.each do |memo|
+  json_file['memos'].each do |memo|
     w_memo = memo if memo['id'].to_s == memo_id.to_s
   end
   w_memo
 end
 
-def new_memo(new_id)
-  new_memo = {
+def new_memo
+  add_memo
+  json = json_file
+  json['memos'].push(add_memo)
+  File.open('views/memos.json', 'w') { |file| JSON.dump(json, file) }
+end
+
+def add_memo
+  new_id = 0
+  json = json_file
+  json['memos'].each do |memo|
+    new_id = memo['id'].to_i + 1 if new_id <= memo['id'].to_i
+  end
+  {
     'id' => new_id.to_s,
     'title' => params[:title],
     'body' => params[:body]
   }
-  $json['memos'].push(new_memo)
 end
 
 def edit_memo
@@ -38,31 +49,29 @@ end
 
 def delete_memo
   num = 0
-  $memos.each do |memo|
-    $json['memos'].delete_at(num) if memo['id'].to_s == params[:id].to_s
+  json = json_file
+  json['memos'].each do |memo|
+    json['memos'].delete_at(num) if memo['id'].to_s == params[:id].to_s
     num += 1
   end
+  File.open('views/memos.json', 'w') { |file| JSON.dump(json, file) }
 end
 
 def rewrite_memo(edit_memo)
   num = 0
-  $memos.each do |memo|
+  json = json_file
+  json['memos'].each do |memo|
     if memo['id'].to_s == params[:id].to_s
-      $json['memos'][num]['title'] = edit_memo['title']
-      $json['memos'][num]['body'] = edit_memo['body']
+      json['memos'][num]['title'] = edit_memo['title']
+      json['memos'][num]['body'] = edit_memo['body']
     end
     num += 1
   end
-end
-
-def rewrite_json
-  File.open('views/memos.json', 'w') do |file|
-    JSON.dump($json, file)
-  end
+  File.open('views/memos.json', 'w') { |file| JSON.dump(json, file) }
 end
 
 get '/' do
-  @memos = $memos
+  @memos = json_file['memos']
   erb :index
 end
 
@@ -79,30 +88,23 @@ end
 patch '/memo/edit/:id' do
   edit_memo
   rewrite_memo(edit_memo)
-  rewrite_json
   redirect '/'
   erb :index
 end
 
 delete '/memo/delete/:id' do
   delete_memo
-  rewrite_json
   redirect '/'
   erb :index
 end
 
 get '/create' do
-  @memos = $memos
+  @memos = json_file['memos']
   erb :create
 end
 
 post '/new' do
-  new_id = 0
-  $memos.each do |memo|
-    new_id = memo['id'].to_i + 1 if new_id <= memo['id'].to_i
-  end
-  new_memo(new_id)
-  rewrite_json
+  new_memo
   redirect '/'
   erb :index
 end
