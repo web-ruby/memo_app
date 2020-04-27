@@ -22,8 +22,8 @@ class Memo
 
   def self.create(title, body)
     @new_id = 0
-    @@json = json_file
-    @@json['memos'].each do |memo|
+    json = json_file
+    json['memos'].each do |memo|
       @new_id = memo['id'].to_i + 1 if @new_id <= memo['id'].to_i
     end
     add = {
@@ -31,29 +31,31 @@ class Memo
       'title' => title,
       'body' => body
     }
-    @@json['memos'].push(add)
-    File.open('views/memos.json', 'w') { |file| JSON.dump(@@json, file) }
+    json['memos'].push(add)
+    File.open('views/memos.json', 'w') { |file| JSON.dump(json, file) }
   end
 
   def delete(id)
     @num = 0
-    @@json['memos'].each do |memo|
-      @@json['memos'].delete_at(@num) if memo['id'].to_s == id.to_s
+    json = json_file
+    json['memos'].each do |memo|
+      json['memos'].delete_at(@num) if memo['id'].to_s == id.to_s
       @num += 1
     end
-    File.open('views/memos.json', 'w') { |file| JSON.dump(@@json, file) }
+    File.open('views/memos.json', 'w') { |file| JSON.dump(json, file) }
   end
 
   def update(id, title, body)
     @num = 0
-    @@json['memos'].each do |memo|
+    json = json_file
+    json['memos'].each do |memo|
       if memo['id'].to_s == id
-        @@json['memos'][@num]['title'] = title
-        @@json['memos'][@num]['body'] = body
+        json['memos'][@num]['title'] = title
+        json['memos'][@num]['body'] = body
       end
       @num += 1
     end
-    File.open('views/memos.json', 'w') { |file| JSON.dump(@@json, file) }
+    File.open('views/memos.json', 'w') { |file| JSON.dump(json, file) }
   end
 end
 
