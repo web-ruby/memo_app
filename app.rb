@@ -37,7 +37,7 @@ class Memo
 
   def delete(id)
     @num = 0
-    json = json_file
+    json = Memo.json_file
     json['memos'].each do |memo|
       json['memos'].delete_at(@num) if memo['id'].to_s == id.to_s
       @num += 1
@@ -47,7 +47,7 @@ class Memo
 
   def update(id, title, body)
     @num = 0
-    json = json_file
+    json = Memo.json_file
     json['memos'].each do |memo|
       if memo['id'].to_s == id
         json['memos'][@num]['title'] = title
