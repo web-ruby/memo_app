@@ -4,63 +4,75 @@ require 'sinatra'
 require 'sinatra/reloader'
 require 'json'
 require 'byebug'
+require 'pg'
 
 class Memo
-  def self.json_file
-    open('views/memos.json') do |io|
-      JSON.load(io)
+  def self.all
+    all = []
+      conection = PG.connect :dbname => 'memo_app', :user => 'user', :password => ''
+      memos = conection.exec 'SELECT * FROM memo_list ORDER BY id;'
+      memos.each do |memo|
+        all.push({ id: memo['id'], title: memo['title'], body: memo['body'] })
+      end
+    all
+  end
+
+  def self.create(title, body)
+    create = []
+    conection = PG.connect :dbname => 'memo_app', :user => 'user', :password => ''
+    @new_id = 0
+    Memo.all.each do |memo|
+      @new_id = memo[:id].to_i + 1 if @new_id <= memo[:id].to_i
     end
+    conection.exec "INSERT INTO memo_list(id, title, body) VALUES ('#{@new_id}', '#{title}', '#{body}');"
+    memos = conection.exec 'SELECT * FROM memo_list;'
+    memos.each do |memo|
+      create.push({ id: memo['id'], title: memo['title'], body: memo['body'] })
+    end
+    create
+  end
+
+  def delete(id)
+    delete = []
+    conection = PG.connect :dbname => 'memo_app', :user => 'user', :password => ''
+    Memo.all.each do |memo|
+      if memo[:id].to_s == id.to_s
+        conection.exec "DELETE from memo_list where id = '#{id}';"
+      end
+    end
+    memos = conection.exec 'SELECT * FROM memo_list'
+    memos.each do |memo|
+      delete = ({ id: memo['id'], title: memo['title'], body: memo['body'] })
+    end
+    delete
   end
 
   def self.find(id)
     w_memo = ''
-    json_file['memos'].each do |memo|
-      w_memo = memo if memo['id'].to_s == id.to_s
+    Memo.all.each do |memo|
+      w_memo = memo if memo[:id].to_s == id.to_s
     end
     w_memo
   end
 
-  def self.create(title, body)
-    @new_id = 0
-    json = json_file
-    json['memos'].each do |memo|
-      @new_id = memo['id'].to_i + 1 if @new_id <= memo['id'].to_i
-    end
-    add = {
-      'id' => @new_id.to_s,
-      'title' => title,
-      'body' => body
-    }
-    json['memos'].push(add)
-    File.open('views/memos.json', 'w') { |file| JSON.dump(json, file) }
-  end
-
-  def delete(id)
-    @num = 0
-    json = Memo.json_file
-    json['memos'].each do |memo|
-      json['memos'].delete_at(@num) if memo['id'].to_s == id.to_s
-      @num += 1
-    end
-    File.open('views/memos.json', 'w') { |file| JSON.dump(json, file) }
-  end
-
   def update(id, title, body)
-    @num = 0
-    json = Memo.json_file
-    json['memos'].each do |memo|
-      if memo['id'].to_s == id
-        json['memos'][@num]['title'] = title
-        json['memos'][@num]['body'] = body
+    update = []
+    conection = PG.connect :dbname => 'memo_app', :user => 'user', :password => ''
+    Memo.all.each do |memo|
+      if memo[:id].to_s == id.to_s
+        conection.exec "UPDATE memo_list SET title = '#{title}', body = '#{body}' where id = '#{id}';"
       end
-      @num += 1
     end
-    File.open('views/memos.json', 'w') { |file| JSON.dump(json, file) }
+    memos = conection.exec 'SELECT * FROM memo_list'
+    memos.each do |memo|
+      update = ({ id: memo['id'], title: memo['title'], body: memo['body'] })
+    end
+    update
   end
 end
 
 get '/' do
-  @memos = Memo.json_file['memos']
+  @memos = Memo.all
   erb :index
 end
 
@@ -89,7 +101,7 @@ delete '/memo/delete/:id' do
 end
 
 get '/create' do
-  @memos = Memo.json_file['memos']
+  @memos = Memo.all
   erb :create
 end
 

@@ -1,14 +1,14 @@
 <ul class="memo-titles">
-  <%= @memo['title'] %>
-  <li class="memo_body"><%= @memo['body'] %></li>
+  <%= @memo[:title] %>
+  <li class="memo_body"><%= @memo[:body] %></li>
 </ul>
 
 <div class="flex">
   <div class="button edit">
-    <a href="/memo/edit/<%= @memo['id'] %>">変更</a>
+    <a href="/memo/edit/<%= @memo[:id] %>">変更</a>
   </div>
 
-  <form class="button delete" method="post" action="/memo/delete/<%= @memo['id'] %>">
+  <form class="button delete" method="post" action="/memo/delete/<%= @memo[:id] %>">
     <input type="hidden" name="_method" value="delete">
     <input type="submit" value="削除">
   </form>
