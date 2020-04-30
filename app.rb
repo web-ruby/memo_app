@@ -28,7 +28,6 @@ class Memo
   end
 
   def delete(id)
-    # delete = []
     conection = PG.connect dbname: 'memo_app', user: 'user', password: ''
     Memo.all.each do |memo|
       if memo[:id].to_s == id.to_s
