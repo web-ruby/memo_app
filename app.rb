@@ -9,42 +9,32 @@ require 'pg'
 class Memo
   def self.all
     all = []
-      conection = PG.connect :dbname => 'memo_app', :user => 'user', :password => ''
-      memos = conection.exec 'SELECT * FROM memo_list ORDER BY id;'
-      memos.map do |memo|
-        all.push({ id: memo['id'], title: memo['title'], body: memo['body'] })
-      end
+    conection = PG.connect dbname: 'memo_app', user: 'user', password: ''
+    memos = conection.exec 'SELECT * FROM memo_list ORDER BY id;'
+    memos.map do |memo|
+      all.push({ id: memo['id'], title: memo['title'], body: memo['body'] })
+    end
     all
   end
 
   def self.create(title, body)
-    create = []
-    conection = PG.connect :dbname => 'memo_app', :user => 'user', :password => ''
+    conection = PG.connect dbname: 'memo_app', user: 'user', password: ''
     @new_id = 0
     Memo.all.each do |memo|
       @new_id = memo[:id].to_i + 1 if @new_id <= memo[:id].to_i
     end
-    conection.exec "INSERT INTO memo_list(id, title, body) VALUES ('#{@new_id}', '#{title}', '#{body}');"
-    memos = conection.exec 'SELECT * FROM memo_list;'
-    memos.map do |memo|
-      create.push({ id: memo['id'], title: memo['title'], body: memo['body'] })
-    end
-    create
+    conection.exec "INSERT INTO memo_list(id, title, body)
+    VALUES ('#{@new_id}', '#{title}', '#{body}');"
   end
 
   def delete(id)
-    delete = []
-    conection = PG.connect :dbname => 'memo_app', :user => 'user', :password => ''
+    # delete = []
+    conection = PG.connect dbname: 'memo_app', user: 'user', password: ''
     Memo.all.each do |memo|
       if memo[:id].to_s == id.to_s
         conection.exec "DELETE from memo_list where id = '#{id}';"
       end
     end
-    memos = conection.exec 'SELECT * FROM memo_list'
-    memos.map do |memo|
-      delete = ({ id: memo['id'], title: memo['title'], body: memo['body'] })
-    end
-    delete
   end
 
   def self.find(id)
@@ -56,18 +46,15 @@ class Memo
   end
 
   def update(id, title, body)
-    update = []
-    conection = PG.connect :dbname => 'memo_app', :user => 'user', :password => ''
+    conection = PG.connect dbname: 'memo_app', user: 'user', password: ''
     Memo.all.each do |memo|
       if memo[:id].to_s == id.to_s
-        conection.exec "UPDATE memo_list SET title = '#{title}', body = '#{body}' where id = '#{id}';"
+        conection.exec "UPDATE memo_list
+        SET title = '#{title}', body = '#{body}' where id = '#{id}';"
       end
     end
     memos = conection.exec 'SELECT * FROM memo_list'
-    memos.map do |memo|
-      update = ({ id: memo['id'], title: memo['title'], body: memo['body'] })
-    end
-    update
+    memos.map(&:update)
   end
 end
 
