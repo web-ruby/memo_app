@@ -11,7 +11,7 @@ class Memo
     all = []
       conection = PG.connect :dbname => 'memo_app', :user => 'user', :password => ''
       memos = conection.exec 'SELECT * FROM memo_list ORDER BY id;'
-      memos.each do |memo|
+      memos.map do |memo|
         all.push({ id: memo['id'], title: memo['title'], body: memo['body'] })
       end
     all
@@ -26,7 +26,7 @@ class Memo
     end
     conection.exec "INSERT INTO memo_list(id, title, body) VALUES ('#{@new_id}', '#{title}', '#{body}');"
     memos = conection.exec 'SELECT * FROM memo_list;'
-    memos.each do |memo|
+    memos.map do |memo|
       create.push({ id: memo['id'], title: memo['title'], body: memo['body'] })
     end
     create
@@ -41,7 +41,7 @@ class Memo
       end
     end
     memos = conection.exec 'SELECT * FROM memo_list'
-    memos.each do |memo|
+    memos.map do |memo|
       delete = ({ id: memo['id'], title: memo['title'], body: memo['body'] })
     end
     delete
@@ -64,7 +64,7 @@ class Memo
       end
     end
     memos = conection.exec 'SELECT * FROM memo_list'
-    memos.each do |memo|
+    memos.map do |memo|
       update = ({ id: memo['id'], title: memo['title'], body: memo['body'] })
     end
     update
