@@ -7,27 +7,28 @@ require 'byebug'
 require 'pg'
 
 class Memo
+  def self.connection
+    PG.connect dbname: 'memo_app', user: 'user', password: ''
+  end
+
   def self.all
-    conection = PG.connect dbname: 'memo_app', user: 'user', password: ''
-    memos = conection.exec 'SELECT * FROM memo_list ORDER BY id;'
+    memos = Memo.connection.exec 'SELECT * FROM memo_list ORDER BY id;'
     memos.map { |memo| { id: memo['id'], title: memo['title'], body: memo['body'] } }
   end
 
   def self.create(title, body)
-    conection = PG.connect dbname: 'memo_app', user: 'user', password: ''
     @new_id = 0
     Memo.all.each do |memo|
       @new_id = memo[:id].to_i + 1 if @new_id <= memo[:id].to_i
     end
-    conection.exec "INSERT INTO memo_list(id, title, body)
+    Memo.connection.exec "INSERT INTO memo_list(id, title, body)
     VALUES ('#{@new_id}', '#{title}', '#{body}');"
   end
 
   def delete(id)
-    conection = PG.connect dbname: 'memo_app', user: 'user', password: ''
     Memo.all.each do |memo|
-      if memo[:id].to_s == id.to_s
-        conection.exec "DELETE from memo_list where id = '#{id}';"
+      if memo[:id] == id
+        Memo.connection.exec "DELETE from memo_list where id = '#{id}';"
       end
     end
   end
@@ -35,16 +36,15 @@ class Memo
   def self.find(id)
     w_memo = ''
     Memo.all.each do |memo|
-      w_memo = memo if memo[:id].to_s == id.to_s
+      w_memo = memo if memo[:id] == id
     end
     w_memo
   end
 
   def update(id, title, body)
-    conection = PG.connect dbname: 'memo_app', user: 'user', password: ''
     Memo.all.each do |memo|
-      if memo[:id].to_s == id.to_s
-        conection.exec "UPDATE memo_list
+      if memo[:id] == id
+        Memo.connection.exec "UPDATE memo_list
         SET title = '#{title}', body = '#{body}' where id = '#{id}';"
       end
     end
