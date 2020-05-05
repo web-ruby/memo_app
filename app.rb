@@ -17,7 +17,6 @@ class Memo
   end
 
   def self.create(title, body)
-    @new_id = 0
     Memo.all.each do |memo|
       @new_id = memo[:id].to_i + 1 if @new_id <= memo[:id].to_i
     end
@@ -34,11 +33,7 @@ class Memo
   end
 
   def self.find(id)
-    w_memo = ''
-    Memo.all.each do |memo|
-      w_memo = memo if memo[:id] == id
-    end
-    w_memo
+    Memo.all.find {|memo| memo[:id] == id }
   end
 
   def update(id, title, body)
