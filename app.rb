@@ -5,14 +5,15 @@ require 'sinatra/reloader'
 require 'json'
 require 'byebug'
 require 'pg'
+require 'dotenv/load'
 
 class Memo
   def self.connection
-    PG.connect dbname: 'memo_app', user: 'user', password: ''
+    PG.connect dbname: ENV['DATABASE_NAME'], user: ENV['DATABASE_USER'], password: ENV['DATABASE_PASSWORD']
   end
 
   def self.all
-    memos = Memo.connection.exec("SELECT * FROM memo_list ORDER BY id;").field_values("id")
+    Memo.connection.exec('SELECT * FROM memo_list ORDER BY id;').field_values('id')
   end
 
   def self.create(title, body)
@@ -34,7 +35,7 @@ class Memo
 
   def self.find(id)
     memo = {}
-    results = Memo.connection.exec("SELECT * FROM memo_list WHERE id ='#{id}';")
+    results = Memo.connection.exec("SELECT id, title, body FROM memo_list WHERE id ='#{id}';")
     results.each do |result|
       memo[:id]    = result['id']
       memo[:title] = result['title']

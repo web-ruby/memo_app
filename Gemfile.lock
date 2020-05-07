@@ -3,6 +3,7 @@ GEM
   specs:
     backports (3.17.0)
     byebug (11.1.1)
+    dotenv (2.7.5)
     multi_json (1.14.1)
     mustermann (1.1.1)
       ruby2_keywords (~> 0.0.1)
@@ -31,6 +32,7 @@ PLATFORMS
 
 DEPENDENCIES
   byebug
+  dotenv
   pg
   redcarpet
   sinatra (~> 2.0)
