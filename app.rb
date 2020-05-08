@@ -13,7 +13,7 @@ class Memo
   end
 
   def self.all
-    Memo.connection.exec('SELECT * FROM memo_list ORDER BY id;').field_values('id')
+    Memo.connection.exec('SELECT id FROM memos ORDER BY id;').field_values('id')
   end
 
   def self.create(title, body)
@@ -21,21 +21,21 @@ class Memo
     Memo.all.each do |memo|
       new_id = memo.to_i + 1 if new_id <= memo.to_i
     end
-    Memo.connection.exec "INSERT INTO memo_list(id, title, body)
+    Memo.connection.exec "INSERT INTO memos(id, title, body)
     VALUES ('#{new_id}', '#{title}', '#{body}');"
   end
 
   def delete(id)
     Memo.all.each do |memo_id|
       if memo_id == id
-        Memo.connection.exec "DELETE from memo_list where id = '#{id}';"
+        Memo.connection.exec "DELETE from memos where id = '#{id}';"
       end
     end
   end
 
   def self.find(id)
     memo = {}
-    results = Memo.connection.exec("SELECT id, title, body FROM memo_list WHERE id ='#{id}';")
+    results = Memo.connection.exec("SELECT id, title, body FROM memos WHERE id ='#{id}';")
     results.each do |result|
       memo[:id]    = result['id']
       memo[:title] = result['title']
@@ -47,7 +47,7 @@ class Memo
   def update(id, title, body)
     Memo.all.each do |memo_id|
       if memo_id == id
-        Memo.connection.exec "UPDATE memo_list
+        Memo.connection.exec "UPDATE memos
         SET title = '#{title}', body = '#{body}' where id = '#{id}';"
       end
     end
