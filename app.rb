@@ -4,63 +4,58 @@ require 'sinatra'
 require 'sinatra/reloader'
 require 'json'
 require 'byebug'
+require 'pg'
+require 'dotenv/load'
 
 class Memo
-  def self.json_file
-    open('views/memos.json') do |io|
-      JSON.load(io)
+  def self.connection
+    PG.connect dbname: ENV['DATABASE_NAME'], user: ENV['DATABASE_USER'], password: ENV['DATABASE_PASSWORD']
+  end
+
+  def self.all
+    Memo.connection.exec('SELECT id FROM memos ORDER BY id;').field_values('id')
+  end
+
+  def self.create(title, body)
+    new_id = 0
+    Memo.all.each do |memo|
+      new_id = memo.to_i + 1 if new_id <= memo.to_i
+    end
+    Memo.connection.exec "INSERT INTO memos(id, title, body)
+    VALUES ('#{new_id}', '#{title}', '#{body}');"
+  end
+
+  def delete(id)
+    Memo.all.each do |memo_id|
+      if memo_id == id
+        Memo.connection.exec "DELETE from memos where id = '#{id}';"
+      end
     end
   end
 
   def self.find(id)
-    w_memo = ''
-    json_file['memos'].each do |memo|
-      w_memo = memo if memo['id'].to_s == id.to_s
+    memo = {}
+    results = Memo.connection.exec("SELECT id, title, body FROM memos WHERE id ='#{id}';")
+    results.each do |result|
+      memo[:id]    = result['id']
+      memo[:title] = result['title']
+      memo[:body]  = result['body']
     end
-    w_memo
-  end
-
-  def self.create(title, body)
-    @new_id = 0
-    json = json_file
-    json['memos'].each do |memo|
-      @new_id = memo['id'].to_i + 1 if @new_id <= memo['id'].to_i
-    end
-    add = {
-      'id' => @new_id.to_s,
-      'title' => title,
-      'body' => body
-    }
-    json['memos'].push(add)
-    File.open('views/memos.json', 'w') { |file| JSON.dump(json, file) }
-  end
-
-  def delete(id)
-    @num = 0
-    json = Memo.json_file
-    json['memos'].each do |memo|
-      json['memos'].delete_at(@num) if memo['id'].to_s == id.to_s
-      @num += 1
-    end
-    File.open('views/memos.json', 'w') { |file| JSON.dump(json, file) }
+    memo
   end
 
   def update(id, title, body)
-    @num = 0
-    json = Memo.json_file
-    json['memos'].each do |memo|
-      if memo['id'].to_s == id
-        json['memos'][@num]['title'] = title
-        json['memos'][@num]['body'] = body
+    Memo.all.each do |memo_id|
+      if memo_id == id
+        Memo.connection.exec "UPDATE memos
+        SET title = '#{title}', body = '#{body}' where id = '#{id}';"
       end
-      @num += 1
     end
-    File.open('views/memos.json', 'w') { |file| JSON.dump(json, file) }
   end
 end
 
 get '/' do
-  @memos = Memo.json_file['memos']
+  @memos = Memo.all.map { |id| Memo.find(id) }
   erb :index
 end
 
@@ -88,12 +83,12 @@ delete '/memo/delete/:id' do
   erb :index
 end
 
-get '/create' do
-  @memos = Memo.json_file['memos']
-  erb :create
+get '/new' do
+  @memos = Memo.all
+  erb :new
 end
 
-post '/new' do
+post '/create' do
   Memo.create(params[:title], params[:body])
   redirect '/'
   erb :index

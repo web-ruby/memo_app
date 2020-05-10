@@ -10,3 +10,5 @@ gem "sinatra", "~> 2.0"
 gem 'sinatra-contrib'
 gem 'redcarpet'
 gem 'byebug'
+gem 'pg'
+gem 'dotenv'
